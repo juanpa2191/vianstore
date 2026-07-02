@@ -6,11 +6,22 @@ Trazabilidad de los pull requests necesarios para llegar al MVP. Cada PR es un v
 
 - `pending` — planeado pero no iniciado.
 - `in_progress` — con desarrollo activo.
-- `in_review` — abierto como PR en GitHub esperando revisión.
-- `merged` — integrado a `main`.
+- `in_review` — alcance terminado, en revisión del agente [`code-reviewer`](../agents/code-reviewer.md) (o de un revisor humano cuando el PR también esté abierto en GitHub).
+- `merged` — integrado a `main`, con veredicto `APPROVE` del `code-reviewer`.
 - `blocked` — pausado por dependencia externa o decisión pendiente.
 
 Cambia el campo `status` en el frontmatter de cada archivo y refleja el cambio en esta tabla.
+
+## Regla de merge — revisión obligatoria por `code-reviewer`
+
+Antes de mover un PR a `merged`, es obligatorio pasarlo por el agente [`code-reviewer`](../agents/code-reviewer.md):
+
+1. Al terminar el alcance, actualiza el status a `in_review`.
+2. Invoca al agente `code-reviewer` con los archivos del PR (o el diff correspondiente) y guarda su veredicto en el archivo del PR bajo `## Code review`.
+3. Solo con veredicto `APPROVE` (limpio o tras aplicar los ajustes de `APPROVE WITH SUGGESTIONS`) se marca `merged`.
+4. Con veredicto `BLOCK`, se devuelven los findings al agente que implementó el PR (o al agente que corresponda por dominio) para que corrija, y se repite el ciclo.
+
+Detalles del flujo en [`CLAUDE.md`](../../CLAUDE.md) → sección "Flujo de trabajo por PR".
 
 ## Lista
 

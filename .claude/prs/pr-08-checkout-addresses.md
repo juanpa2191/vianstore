@@ -30,6 +30,7 @@ Convertir el carrito en un pedido persistido en DB, con dirección de envío y s
 - [ ] Página de confirmación `/checkout/success/[orderId]` con resumen y próximos pasos (instrucciones de pago manual: transferencia / contra entrega — dejar como TODO copy).
 
 ## Definition of Done
+- Veredicto **`APPROVE`** del agente [`code-reviewer`](../agents/code-reviewer.md) (compuerta obligatoria — ver [flujo global](README.md#regla-de-merge--revisión-obligatoria-por-code-reviewer)).
 - Un cliente con carrito y dirección puede confirmar un pedido.
 - El stock disponible baja exactamente por lo pedido.
 - Si dos clientes intentan comprar la última unidad en paralelo, sólo uno gana (la transacción falla para el otro con mensaje claro).

@@ -30,6 +30,7 @@ Interfaz de administración para crear, editar y desactivar productos con sus va
 - [ ] Feedback UI (toasts) y estados de carga.
 
 ## Definition of Done
+- Veredicto **`APPROVE`** del agente [`code-reviewer`](../agents/code-reviewer.md) (compuerta obligatoria — ver [flujo global](README.md#regla-de-merge--revisión-obligatoria-por-code-reviewer)).
 - Un admin puede crear un producto completo con al menos 2 variantes y 1 imagen desde la UI.
 - Desactivar un producto lo saca del storefront (pero no del admin).
 - Editar precio/stock se refleja inmediatamente en el detalle público.

@@ -34,6 +34,7 @@ Modelo de datos completo de catálogo: producto con variantes talla × color, ca
   - 5–10 productos con variantes y stock realista.
 
 ## Definition of Done
+- Veredicto **`APPROVE`** del agente [`code-reviewer`](../agents/code-reviewer.md) (compuerta obligatoria — ver [flujo global](README.md#regla-de-merge--revisión-obligatoria-por-code-reviewer)).
 - `pnpm prisma migrate dev` corre limpio.
 - Seeds ejecutan sin duplicados en re-ejecuciones.
 - Query de prueba retorna un producto con sus variantes, imágenes y stock por SKU.

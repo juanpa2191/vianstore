@@ -34,6 +34,7 @@ Carrito persistente que sobrevive recargas y sesión. Un cliente logueado y uno 
   - Drawer/mini-cart opcional (evaluar en implementación).
 
 ## Definition of Done
+- Veredicto **`APPROVE`** del agente [`code-reviewer`](../agents/code-reviewer.md) (compuerta obligatoria — ver [flujo global](README.md#regla-de-merge--revisión-obligatoria-por-code-reviewer)).
 - Recargar la página no pierde el carrito (anónimo ni logueado).
 - Login mientras hay carrito anónimo fusiona correctamente.
 - Intentar agregar más que el stock muestra error claro.

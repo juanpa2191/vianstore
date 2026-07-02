@@ -22,6 +22,7 @@ Vista de entrada del admin (`/admin`) que resume lo urgente en un vistazo.
 - [ ] Actualización simple con `revalidate` cada N segundos (60s bastan para MVP).
 
 ## Definition of Done
+- Veredicto **`APPROVE`** del agente [`code-reviewer`](../agents/code-reviewer.md) (compuerta obligatoria — ver [flujo global](README.md#regla-de-merge--revisión-obligatoria-por-code-reviewer)).
 - Un admin abre `/admin` y en 5 segundos entiende qué debe atender.
 - Los números coinciden con los datos reales de la DB.
 

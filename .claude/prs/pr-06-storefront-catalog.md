@@ -30,6 +30,7 @@ Vistas públicas del catálogo. El cliente debe poder encontrar un zapato en su 
 - [ ] SEO: metadata dinámica por producto, OpenGraph tags, sitemap básico.
 
 ## Definition of Done
+- Veredicto **`APPROVE`** del agente [`code-reviewer`](../agents/code-reviewer.md) (compuerta obligatoria — ver [flujo global](README.md#regla-de-merge--revisión-obligatoria-por-code-reviewer)).
 - Cliente puede filtrar por talla + color + marca y encontrar productos.
 - Cambiar color en el detalle muestra el subset correcto de tallas.
 - Seleccionar una talla agotada muestra el estado y no permite agregar.

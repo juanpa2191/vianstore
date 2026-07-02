@@ -25,6 +25,7 @@ Dejar la infraestructura de email lista y disparar el primer correo transacciona
 - [ ] Modo dev: enviar a una dirección de prueba fija o usar Resend sandbox.
 
 ## Definition of Done
+- Veredicto **`APPROVE`** del agente [`code-reviewer`](../agents/code-reviewer.md) (compuerta obligatoria — ver [flujo global](README.md#regla-de-merge--revisión-obligatoria-por-code-reviewer)).
 - Confirmar un pedido dispara el email a la dirección real del cliente.
 - El email renderiza bien en Gmail y Outlook.
 - Un fallo del proveedor de email **no** revierte el pedido.

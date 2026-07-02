@@ -102,3 +102,17 @@ Resumen por fases:
 - **Fase 4 — Cierre:** PRs #13–#14 (dashboard, CI/CD).
 
 Antes de iniciar cualquier tarea, revisar el archivo del PR correspondiente en `.claude/prs/` y actualizar su campo `status`.
+
+## Flujo de trabajo por PR (obligatorio)
+
+Cada PR sigue este ciclo. **Ningún PR pasa directo de `in_progress` a `merged`.**
+
+1. **`pending` → `in_progress`** — el agente asignado implementa el alcance del PR y va marcando su checklist.
+2. **`in_progress` → `in_review`** — al terminar el alcance y las verificaciones locales (`pnpm lint`, `pnpm typecheck`, tests si aplica), se invoca al agente [`code-reviewer`](.claude/agents/code-reviewer.md) sobre los cambios del PR. Es una **compuerta obligatoria** antes de mergear.
+3. Según el veredicto del `code-reviewer`:
+   - **`APPROVE`** → status pasa a `merged`.
+   - **`APPROVE WITH SUGGESTIONS`** → aplicar los ajustes en el mismo PR, volver a correr `code-reviewer` y solo entonces mergear.
+   - **`BLOCK`** → devolver el PR al agente que lo implementó (o al agente que corresponda por dominio) con los findings del review. No se mergea hasta que un nuevo pase de `code-reviewer` termine en `APPROVE`.
+4. **`merged`** — solo después de un veredicto `APPROVE` limpio del `code-reviewer`.
+
+Los findings del review se resumen en el archivo del PR bajo una sección `## Code review` con el veredicto, la fecha y los cambios aplicados si los hubo.

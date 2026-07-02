@@ -32,6 +32,7 @@ El admin puede ver todos los pedidos, filtrarlos y moverlos por el ciclo de vida
   - `OrderStatusChange` — orderId, fromStatus, toStatus, changedByUserId, changedAt.
 
 ## Definition of Done
+- Veredicto **`APPROVE`** del agente [`code-reviewer`](../agents/code-reviewer.md) (compuerta obligatoria — ver [flujo global](README.md#regla-de-merge--revisión-obligatoria-por-code-reviewer)).
 - Un admin puede mover un pedido por todos los estados sin errores.
 - Cancelar un pedido en `pendiente_pago` o `pagado` devuelve el stock.
 - El cliente ve el nuevo estado y la guía en su historial (PR #10).

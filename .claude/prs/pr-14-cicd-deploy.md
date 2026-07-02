@@ -32,6 +32,7 @@ La app corre en producción con dominio propio, HTTPS, backups y un pipeline que
   - Cómo rotar credenciales.
 
 ## Definition of Done
+- Veredicto **`APPROVE`** del agente [`code-reviewer`](../agents/code-reviewer.md) (compuerta obligatoria — ver [flujo global](README.md#regla-de-merge--revisión-obligatoria-por-code-reviewer)).
 - Abrir un PR ejecuta el pipeline y bloquea el merge si algo falla.
 - `main` despliega automáticamente a producción.
 - La app en producción responde en el dominio con HTTPS.

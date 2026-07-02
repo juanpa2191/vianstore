@@ -22,6 +22,7 @@ El cliente puede ver todos sus pedidos, el estado actual y el número de guía c
 - [ ] Componente `<OrderStatusBadge />` reutilizable.
 
 ## Definition of Done
+- Veredicto **`APPROVE`** del agente [`code-reviewer`](../agents/code-reviewer.md) (compuerta obligatoria — ver [flujo global](README.md#regla-de-merge--revisión-obligatoria-por-code-reviewer)).
 - Un cliente logueado sólo ve sus propios pedidos.
 - El detalle muestra información consistente con la DB.
 - El link a la transportadora abre en nueva pestaña.

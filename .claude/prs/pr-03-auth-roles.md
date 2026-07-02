@@ -29,6 +29,7 @@ Login funcional con magic link (email) y Google OAuth vía Supabase Auth. Al pri
 - [ ] Componente `<UserMenu />` en el header (login/logout, link a cuenta).
 
 ## Definition of Done
+- Veredicto **`APPROVE`** del agente [`code-reviewer`](../agents/code-reviewer.md) (compuerta obligatoria — ver [flujo global](README.md#regla-de-merge--revisión-obligatoria-por-code-reviewer)).
 - Un usuario nuevo puede pedir magic link, hacer click y quedar logueado.
 - Google OAuth funciona en dev.
 - Al hacer login por primera vez, aparece la fila en `public.Profile`.

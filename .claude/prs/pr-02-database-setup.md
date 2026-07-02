@@ -25,6 +25,7 @@ Conectar el proyecto a un Postgres gestionado por Supabase y dejar Prisma config
 - [ ] Cliente Prisma singleton en `lib/prisma.ts` (evita reconexiones en dev).
 
 ## Definition of Done
+- Veredicto **`APPROVE`** del agente [`code-reviewer`](../agents/code-reviewer.md) (compuerta obligatoria — ver [flujo global](README.md#regla-de-merge--revisión-obligatoria-por-code-reviewer)).
 - `pnpm prisma migrate dev` corre limpio.
 - `pnpm db:seed` crea el admin y no falla al re-ejecutarse (idempotente).
 - Se puede consultar `prisma.profile.findMany()` desde una API route de prueba.

@@ -24,6 +24,7 @@ Notificar al cliente por email cuando su pedido cambia a `enviado` (con la guía
 - [ ] Toggle en env para desactivar emails de "entregado" si no lo queremos aún.
 
 ## Definition of Done
+- Veredicto **`APPROVE`** del agente [`code-reviewer`](../agents/code-reviewer.md) (compuerta obligatoria — ver [flujo global](README.md#regla-de-merge--revisión-obligatoria-por-code-reviewer)).
 - Cambiar estado a `enviado` desde `/admin/orders/[id]` dispara automáticamente el email.
 - El link a la transportadora funciona (probar con al menos una transportadora local).
 - Los fallos de email no bloquean la transición de estado.
