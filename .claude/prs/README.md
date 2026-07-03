@@ -28,7 +28,7 @@ Detalles del flujo en [`CLAUDE.md`](../../CLAUDE.md) → sección "Flujo de trab
 | # | Título | Fase | Estado | Depende de |
 |---|---|---|---|---|
 | [1](pr-01-bootstrap.md) | Bootstrap del proyecto | 0 - Fundación | `merged` | — |
-| [2](pr-02-database-setup.md) | Base de datos + Prisma + Supabase | 0 - Fundación | `pending` | #1 |
+| [2](pr-02-database-setup.md) | Base de datos + Prisma + Supabase | 0 - Fundación | `merged` | #1 |
 | [3](pr-03-auth-roles.md) | Auth (Supabase) + roles | 0 - Fundación | `pending` | #2 |
 | [4](pr-04-catalog-model.md) | Modelo de catálogo | 1 - Catálogo | `pending` | #2 |
 | [5](pr-05-admin-catalog-crud.md) | Admin: CRUD de catálogo | 1 - Catálogo | `pending` | #3, #4 |

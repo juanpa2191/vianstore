@@ -39,7 +39,7 @@ El MVP debe permitir que un cliente descubra un zapato en su talla, pague, y que
 - **Iconos:** `lucide-react` v1 (nota: v1 removió logos de marcas — no importar `Instagram` u otros brand icons).
 - **Package manager:** pnpm 10.
 - **Base de datos:** PostgreSQL en Supabase.
-- **ORM:** Prisma (llega en PR #2).
+- **ORM:** Prisma 7 con `@prisma/adapter-pg` (driver adapter obligatorio en v7). URLs en `prisma.config.ts`, no en el `datasource` del schema. Multi-schema (`public` + `auth`) es GA — no hace falta preview flag.
 - **Autenticación:** Supabase Auth (email magic link + Google OAuth) (llega en PR #3).
 - **Storage de imágenes:** Supabase Storage (S3-compatible).
 - **Email transaccional:** Resend + React Email (llega en PR #9).
@@ -58,8 +58,13 @@ Supabase Auth gestiona su propia tabla `auth.users` (schema `auth`) que Prisma n
 ```
 app/                # Rutas Next.js (App Router). layout.tsx tiene el shell (header + footer).
 components/         # Componentes React compartidos. Logo.tsx.
-lib/                # Utilidades (prisma, supabase, email) — se llena en PRs siguientes.
-db/                 # Schema Prisma, migraciones y seeds — llega en PR #2.
+lib/                # Utilidades compartidas. prisma.ts (singleton con adapter pg).
+db/                 # schema.prisma, migraciones y seed.ts.
+  schema.prisma     # Modelos (Profile + enum Role). Prisma 7 → sin `url` en el datasource.
+  seed.ts           # Crea/promueve admin de dev vía Supabase Admin SDK + Prisma.
+  migrations/       # Migraciones versionadas. `_supplements/` contiene SQL raw
+                    # (RLS, triggers, FKs a auth) que se anexa a migraciones.
+prisma.config.ts    # Prisma 7 mueve las URLs aquí (DATABASE_URL pooler, DIRECT_URL para migrate).
 emails/             # Plantillas React Email — llega en PR #9.
 public/             # Assets estáticos servidos por Next.
 vistas/             # Prototipo Vite/React original. Referencia visual; excluido del build,

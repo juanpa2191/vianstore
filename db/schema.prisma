@@ -1,0 +1,36 @@
+// VianStore — schema principal de Prisma.
+//
+// El schema `auth` lo gestiona Supabase Auth y Prisma NO lo migra.
+// La app referencia `auth.users` por UUID desde `public.profile`; la FK se
+// declara en el `migration.sql` inicial (raw SQL), no en Prisma, porque Prisma
+// no puede crear FKs a modelos ignorados.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["public", "auth"]
+}
+
+enum Role {
+  admin
+  customer
+
+  @@schema("public")
+}
+
+/// Perfil de usuario de la app. `id` == `auth.users.id`.
+/// Se crea automáticamente por trigger AFTER INSERT ON auth.users (ver migration.sql).
+model Profile {
+  id        String   @id @db.Uuid
+  role      Role     @default(customer)
+  fullName  String?  @map("full_name")
+  phone     String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("profile")
+  @@schema("public")
+}
