@@ -3,6 +3,7 @@ import { Inter, Outfit, JetBrains_Mono } from "next/font/google";
 import { ShoppingBag, AtSign } from "lucide-react";
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import UserMenu from "@/components/UserMenu";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -54,14 +55,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </Link>
             </nav>
 
-            <button
-              type="button"
-              className="relative p-2.5 rounded-xl border bg-white border-neutral-200 text-neutral-800 hover:border-neutral-400 hover:bg-neutral-50 transition-all flex items-center gap-1.5 cursor-pointer"
-              aria-label="Abrir carrito"
-            >
-              <ShoppingBag className="h-4 w-4" />
-              <span className="text-xs font-bold">Carrito</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="relative p-2.5 rounded-xl border bg-white border-neutral-200 text-neutral-800 hover:border-neutral-400 hover:bg-neutral-50 transition-all flex items-center gap-1.5 cursor-pointer"
+                aria-label="Abrir carrito"
+              >
+                <ShoppingBag className="h-4 w-4" />
+                <span className="text-xs font-bold">Carrito</span>
+              </button>
+              <UserMenu />
+            </div>
           </div>
         </header>
 

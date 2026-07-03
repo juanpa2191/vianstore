@@ -12,14 +12,14 @@ Trazabilidad de los pull requests necesarios para llegar al MVP. Cada PR es un v
 
 Cambia el campo `status` en el frontmatter de cada archivo y refleja el cambio en esta tabla.
 
-## Regla de merge — revisión obligatoria por `code-reviewer`
+## Regla de merge — `code-reviewer` primero, E2E al final
 
-Antes de mover un PR a `merged`, es obligatorio pasarlo por el agente [`code-reviewer`](../agents/code-reviewer.md):
+Antes de mover un PR a `merged`, es obligatorio en este orden:
 
-1. Al terminar el alcance, actualiza el status a `in_review`.
-2. Invoca al agente `code-reviewer` con los archivos del PR (o el diff correspondiente) y guarda su veredicto en el archivo del PR bajo `## Code review`.
-3. Solo con veredicto `APPROVE` (limpio o tras aplicar los ajustes de `APPROVE WITH SUGGESTIONS`) se marca `merged`.
-4. Con veredicto `BLOCK`, se devuelven los findings al agente que implementó el PR (o al agente que corresponda por dominio) para que corrija, y se repite el ciclo.
+1. Al terminar el alcance + `pnpm lint` + `pnpm typecheck`, actualizar el status a `in_review`.
+2. **Primero:** invocar al agente [`code-reviewer`](../agents/code-reviewer.md) con los archivos del PR (o el diff correspondiente) y guardar su veredicto en el archivo del PR bajo `## Code review`. Solo con `APPROVE` limpio (directo o tras aplicar ajustes de `APPROVE WITH SUGGESTIONS`) se avanza. Con `BLOCK`, se devuelven los findings al agente que implementó (o al agente por dominio) y se repite el ciclo.
+3. **Después:** proponer un set corto de pruebas E2E sugeridas al usuario (browser + verificaciones en DB/logs). El asistente lista qué hacer paso a paso; el usuario ejecuta. Resultado resumido en el archivo del PR bajo `## E2E`.
+4. **`merged`** — solo con `APPROVE` del `code-reviewer` + E2E completas OK.
 
 Detalles del flujo en [`CLAUDE.md`](../../CLAUDE.md) → sección "Flujo de trabajo por PR".
 
@@ -29,7 +29,7 @@ Detalles del flujo en [`CLAUDE.md`](../../CLAUDE.md) → sección "Flujo de trab
 |---|---|---|---|---|
 | [1](pr-01-bootstrap.md) | Bootstrap del proyecto | 0 - Fundación | `merged` | — |
 | [2](pr-02-database-setup.md) | Base de datos + Prisma + Supabase | 0 - Fundación | `merged` | #1 |
-| [3](pr-03-auth-roles.md) | Auth (Supabase) + roles | 0 - Fundación | `pending` | #2 |
+| [3](pr-03-auth-roles.md) | Auth (Supabase) + roles | 0 - Fundación | `merged` | #2 |
 | [4](pr-04-catalog-model.md) | Modelo de catálogo | 1 - Catálogo | `pending` | #2 |
 | [5](pr-05-admin-catalog-crud.md) | Admin: CRUD de catálogo | 1 - Catálogo | `pending` | #3, #4 |
 | [6](pr-06-storefront-catalog.md) | Storefront: catálogo público | 1 - Catálogo | `pending` | #4 |

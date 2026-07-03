@@ -113,11 +113,12 @@ Antes de iniciar cualquier tarea, revisar el archivo del PR correspondiente en `
 Cada PR sigue este ciclo. **Ningún PR pasa directo de `in_progress` a `merged`.**
 
 1. **`pending` → `in_progress`** — el agente asignado implementa el alcance del PR y va marcando su checklist.
-2. **`in_progress` → `in_review`** — al terminar el alcance y las verificaciones locales (`pnpm lint`, `pnpm typecheck`, tests si aplica), se invoca al agente [`code-reviewer`](.claude/agents/code-reviewer.md) sobre los cambios del PR. Es una **compuerta obligatoria** antes de mergear.
+2. **`in_progress` → `in_review`** — al terminar el alcance y las verificaciones locales (`pnpm lint`, `pnpm typecheck`, `pnpm build` si aplica), se invoca al agente [`code-reviewer`](.claude/agents/code-reviewer.md) sobre los cambios del PR. Es una **compuerta obligatoria** y debe correr **antes** de las pruebas E2E — así atrapamos bugs estáticos sin gastar tiempo en flujos manuales que van a rehacerse.
 3. Según el veredicto del `code-reviewer`:
-   - **`APPROVE`** → status pasa a `merged`.
-   - **`APPROVE WITH SUGGESTIONS`** → aplicar los ajustes en el mismo PR, volver a correr `code-reviewer` y solo entonces mergear.
-   - **`BLOCK`** → devolver el PR al agente que lo implementó (o al agente que corresponda por dominio) con los findings del review. No se mergea hasta que un nuevo pase de `code-reviewer` termine en `APPROVE`.
-4. **`merged`** — solo después de un veredicto `APPROVE` limpio del `code-reviewer`.
+   - **`APPROVE`** → seguir al paso 4.
+   - **`APPROVE WITH SUGGESTIONS`** → aplicar los ajustes en el mismo PR, volver a correr `code-reviewer` y solo con `APPROVE` limpio avanzar al paso 4.
+   - **`BLOCK`** → devolver el PR al agente que lo implementó (o al agente que corresponda por dominio) con los findings del review. No se avanza hasta que un nuevo pase de `code-reviewer` termine en `APPROVE`.
+4. **Pruebas E2E sugeridas** — con `APPROVE` limpio, el asistente propone un set corto de pruebas end-to-end (browser + verificaciones en DB / logs / red según aplique) para que el usuario las corra. Las pruebas cubren el flujo dorado del PR y los casos de rechazo explícitos del scope. Si alguna prueba falla → volver al paso 1 con el bug identificado, y ciclo completo de nuevo.
+5. **`merged`** — solo después de `APPROVE` limpio del `code-reviewer` **y** todas las pruebas E2E sugeridas pasando.
 
-Los findings del review se resumen en el archivo del PR bajo una sección `## Code review` con el veredicto, la fecha y los cambios aplicados si los hubo.
+Los findings del review se resumen en el archivo del PR bajo una sección `## Code review` con el veredicto, la fecha y los cambios aplicados si los hubo. Las pruebas E2E corridas se resumen en una sección `## E2E` con el set propuesto y el resultado de cada una.
