@@ -14,6 +14,10 @@ datasource db {
   schemas  = ["public", "auth"]
 }
 
+// ---------------------------------------------------------------------------
+// Roles y perfil de usuario (PR #2 / #3).
+// ---------------------------------------------------------------------------
+
 enum Role {
   admin
   customer
@@ -32,5 +36,130 @@ model Profile {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("profile")
+  @@schema("public")
+}
+
+// ---------------------------------------------------------------------------
+// Catálogo (PR #4).
+//
+// Estructura: Product 1—N Variant 1—1 Sku. Variant = (color × size) por
+// producto; Sku carga stock y precio. Se separa Sku de Variant para permitir
+// mañana precios por canal / costo sin migrar la tabla principal.
+//
+// Precios en centavos (Int) para evitar aritmética decimal. UUID en todos los
+// IDs de dominio para consistencia con auth.users.
+// ---------------------------------------------------------------------------
+
+enum ProductStatus {
+  draft
+  active
+  archived
+
+  @@schema("public")
+}
+
+model Brand {
+  id       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name     String    @unique
+  slug     String    @unique
+  products Product[]
+
+  @@map("brand")
+  @@schema("public")
+}
+
+model Color {
+  id       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name     String         @unique
+  /// Hex sin `#`, ej "0f172a". Validación de formato en app + CHECK en DB.
+  hex      String
+  variants Variant[]
+  images   ProductImage[]
+
+  @@map("color")
+  @@schema("public")
+}
+
+model Size {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// Etiqueta imprimible (ej "38", "38.5", "M"). No parsear como número.
+  label     String    @unique
+  /// Orden estable para UI (35→42 asc).
+  sortOrder Int       @map("sort_order")
+  variants  Variant[]
+
+  @@map("size")
+  @@schema("public")
+}
+
+model Product {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String         @unique
+  name        String
+  description String?
+  status      ProductStatus  @default(draft)
+  brandId     String         @map("brand_id") @db.Uuid
+  brand       Brand          @relation(fields: [brandId], references: [id], onDelete: Restrict)
+  variants    Variant[]
+  images      ProductImage[]
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([brandId])
+  @@index([status])
+  @@map("product")
+  @@schema("public")
+}
+
+model Variant {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  colorId   String   @map("color_id") @db.Uuid
+  color     Color    @relation(fields: [colorId], references: [id], onDelete: Restrict)
+  sizeId    String   @map("size_id") @db.Uuid
+  size      Size     @relation(fields: [sizeId], references: [id], onDelete: Restrict)
+  sku       Sku?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([productId, colorId, sizeId], name: "variant_product_color_size_uniq")
+  @@index([productId])
+  @@map("variant")
+  @@schema("public")
+}
+
+model Sku {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  variantId String   @unique @map("variant_id") @db.Uuid
+  variant   Variant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  /// SKU imprimible/único para operaciones (ej "NIK-AF1-BLK-40").
+  code      String   @unique
+  /// Precio en centavos (COP no usa fracción, pero mantenemos el patrón).
+  price     Int
+  /// Stock disponible. No negativo — validación por CHECK en supplement.
+  stock     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([price, stock])
+  @@map("sku")
+  @@schema("public")
+}
+
+model ProductImage {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// Opcional: si está seteado, esta imagen representa la variante de ese color.
+  colorId   String?  @map("color_id") @db.Uuid
+  color     Color?   @relation(fields: [colorId], references: [id], onDelete: SetNull)
+  url       String
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([productId, url])
+  @@index([productId, sortOrder])
+  @@index([productId, colorId])
+  @@map("product_image")
   @@schema("public")
 }
