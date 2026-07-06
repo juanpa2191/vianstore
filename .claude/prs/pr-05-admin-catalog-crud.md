@@ -2,7 +2,7 @@
 pr: 5
 title: "Admin: CRUD de catálogo"
 phase: 1 - Catálogo
-status: in_review
+status: merged
 depends_on: [3, 4]
 branch: pr-05-admin-catalog-crud
 ---

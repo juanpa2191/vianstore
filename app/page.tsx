@@ -1,6 +1,11 @@
-import { Award, MapPin, Heart } from "lucide-react";
+import Link from "next/link";
+import { Award, MapPin, Heart, ArrowRight } from "lucide-react";
+import { listFeaturedProducts } from "@/lib/catalog/public-queries";
+import ProductCard from "@/components/catalog/ProductCard";
 
-export default function Home() {
+export default async function Home() {
+  const featured = await listFeaturedProducts(8);
+
   return (
     <>
       <section className="w-full bg-neutral-950 text-white relative overflow-hidden py-10 px-4 sm:px-8">
@@ -33,25 +38,48 @@ export default function Home() {
                 <span>Soporte por Instagram</span>
               </span>
             </div>
+
+            <Link
+              href="/products"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-4 py-2 text-xs font-black tracking-widest text-white uppercase transition-colors hover:bg-amber-500"
+            >
+              Ver catálogo
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
           </div>
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-white border border-neutral-200 rounded-3xl p-8 shadow-xs">
-          <span className="inline-block bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded">
-            En construcción
-          </span>
-          <h3 className="mt-4 text-xl font-black font-display tracking-tight text-neutral-900">
-            El catálogo llega en el PR #6
-          </h3>
-          <p className="mt-2 text-sm text-neutral-500 max-w-2xl leading-relaxed">
-            Este es el punto de partida del proyecto (PR #1 — Bootstrap). En los próximos PRs se conectan
-            base de datos, autenticación, catálogo con variantes por talla y color, carrito y checkout.
-            Consulta <code className="font-mono text-[11px] bg-neutral-100 px-1.5 py-0.5 rounded">.claude/prs/README.md</code>{" "}
-            para ver el roadmap completo.
-          </p>
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <h3 className="font-display text-xl font-black tracking-tight text-neutral-900">
+              Destacados
+            </h3>
+            <p className="text-xs text-neutral-500">Los más recientes del catálogo.</p>
+          </div>
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-1 text-xs font-bold text-neutral-700 hover:text-neutral-950"
+          >
+            Ver todos
+            <ArrowRight className="h-3 w-3" aria-hidden="true" />
+          </Link>
         </div>
+
+        {featured.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 p-10 text-center text-sm text-neutral-500">
+            Sin productos activos todavía. Activa productos desde el admin.
+          </div>
+        ) : (
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {featured.map((p) => (
+              <li key={p.id}>
+                <ProductCard product={p} />
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </>
   );

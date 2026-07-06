@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Toaster } from "sonner";
 import Logo from "@/components/Logo";
 import UserMenu from "@/components/UserMenu";
+import { getSiteUrl } from "@/lib/env";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -12,6 +13,7 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: 
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
   title: "VianStore Sneakers — Calzado urbano premium",
   description:
     "Sneakers originales y calzado urbano premium. Encuentra tu talla, paga fácil y recibe en tu ciudad.",

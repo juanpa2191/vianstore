@@ -8,6 +8,18 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { slugify } from "@/lib/slug";
 
 /**
+ * Invalida las 3 vistas públicas del catálogo. Cualquier mutation admin sobre
+ * producto / variante / imagen debe llamarla para que el cliente vea cambios
+ * inmediatos (el home lista destacados, `/products` el listado con filtros y
+ * `/p/[slug]` los PDPs individuales).
+ */
+function invalidatePublicCatalog() {
+  revalidatePath("/");
+  revalidatePath("/products");
+  revalidatePath("/p/[slug]", "page");
+}
+
+/**
  * Resultado normalizado que consumen los forms del cliente.
  *
  * Contract explícito: `ok:true` con opcional `id/slug` para redirect en el
@@ -86,6 +98,9 @@ export async function createProduct(
     // color seleccionado en el mismo form) antes de navegar al editor. Ver
     // NewProductForm.tsx.
     revalidatePath("/admin/products");
+    // Si el status inicial es active, un producto nuevo aparece en el home
+    // y en /products inmediatamente.
+    if (data.status === "active") invalidatePublicCatalog();
     return { ok: true, id: created.id, slug: normalizedSlug };
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -144,8 +159,8 @@ export async function updateProduct(
     });
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${data.id}`);
-    // Cambios de status/name/slug/description afectan el PDP público.
-    revalidatePath("/p/[slug]", "page");
+    // Cambios de status/name/slug/description afectan las vistas públicas.
+    invalidatePublicCatalog();
     return { ok: true, id: data.id, slug: normalizedSlug };
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -218,7 +233,7 @@ export async function upsertVariant(input: unknown): Promise<ActionResult> {
 
     revalidatePath(`/admin/products/${productId}`);
     revalidatePath("/admin/products");
-    revalidatePath("/p/[slug]", "page");
+    invalidatePublicCatalog();
     return { ok: true, id: result };
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
@@ -261,7 +276,7 @@ export async function deleteVariant(input: unknown): Promise<ActionResult> {
 
   revalidatePath(`/admin/products/${parsed.data.productId}`);
   revalidatePath("/admin/products");
-  revalidatePath("/p/[slug]", "page");
+  invalidatePublicCatalog();
   return { ok: true };
 }
 
@@ -336,9 +351,7 @@ export async function attachImage(input: unknown): Promise<ActionResult> {
       });
     });
     revalidatePath(`/admin/products/${productId}`);
-    // Invalida TODAS las páginas /p/[slug] renderizadas (no hay forma barata
-    // de mapear productId→slug sin round-trip). Aceptable para MVP.
-    revalidatePath("/p/[slug]", "page");
+    invalidatePublicCatalog();
     return { ok: true, id: img.id };
   } catch (err) {
     if (err instanceof DuplicateColorImageError) {
@@ -379,7 +392,7 @@ export async function deleteImage(input: unknown): Promise<ActionResult> {
   }
 
   revalidatePath(`/admin/products/${parsed.data.productId}`);
-  revalidatePath("/p/[slug]", "page");
+  invalidatePublicCatalog();
   return { ok: true };
 }
 
