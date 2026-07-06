@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit, JetBrains_Mono } from "next/font/google";
 import { ShoppingBag, AtSign } from "lucide-react";
 import Link from "next/link";
+import { Toaster } from "sonner";
 import Logo from "@/components/Logo";
 import UserMenu from "@/components/UserMenu";
 import "./globals.css";
@@ -70,6 +71,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </header>
 
         <main className="flex-1 w-full">{children}</main>
+        <Toaster position="top-right" richColors closeButton />
+
 
         <footer className="bg-neutral-900 text-white mt-12 border-t border-neutral-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 md:grid-cols-3 gap-8 text-xs text-neutral-400">

@@ -31,7 +31,7 @@ Detalles del flujo en [`CLAUDE.md`](../../CLAUDE.md) → sección "Flujo de trab
 | [2](pr-02-database-setup.md) | Base de datos + Prisma + Supabase | 0 - Fundación | `merged` | #1 |
 | [3](pr-03-auth-roles.md) | Auth (Supabase) + roles | 0 - Fundación | `merged` | #2 |
 | [4](pr-04-catalog-model.md) | Modelo de catálogo | 1 - Catálogo | `merged` | #2 |
-| [5](pr-05-admin-catalog-crud.md) | Admin: CRUD de catálogo | 1 - Catálogo | `pending` | #3, #4 |
+| [5](pr-05-admin-catalog-crud.md) | Admin: CRUD de catálogo | 1 - Catálogo | `in_review` | #3, #4 |
 | [6](pr-06-storefront-catalog.md) | Storefront: catálogo público | 1 - Catálogo | `pending` | #4 |
 | [7](pr-07-cart.md) | Carrito | 2 - Compra | `pending` | #6 |
 | [8](pr-08-checkout-addresses.md) | Direcciones y checkout | 2 - Compra | `pending` | #7 |
