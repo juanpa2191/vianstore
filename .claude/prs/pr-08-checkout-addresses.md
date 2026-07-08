@@ -2,7 +2,7 @@
 pr: 8
 title: Direcciones y checkout (sin pasarela)
 phase: 2 - Compra
-status: in_review
+status: merged
 depends_on: [7]
 branch: pr-08-checkout-addresses
 ---

@@ -210,6 +210,10 @@ model Order {
   totalCents       Int         @map("total_cents")
   createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  /// Timestamp del email de confirmación (PR #9). Null hasta que se envía.
+  emailSentAt      DateTime?   @map("email_sent_at") @db.Timestamptz(6)
+  /// Mensaje del último error de envío. Null si el envío fue OK.
+  emailError       String?     @map("email_error")
   items            OrderItem[]
 
   @@index([userId, createdAt(sort: Desc)])

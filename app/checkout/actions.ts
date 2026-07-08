@@ -1,12 +1,19 @@
 "use server";
 
+// Nota: este módulo requiere runtime Node (react-dom/server via @react-email
+// + pg). No exportamos `runtime = "nodejs"` porque `"use server"` no permite
+// exports non-function. La ruta `/checkout` ya corre en Node por Prisma; no
+// mover Server Actions a Edge sin refactorar el envío.
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/require-user";
 import { getShippingCostCents } from "@/lib/checkout/config";
 import { AddressSnapshotSchema, type AddressSnapshot } from "@/lib/checkout/snapshot";
+import { sendOrderConfirmationEmail } from "@/lib/email/order-confirmation";
 
 export type CheckoutResult =
   | { ok: true; orderId: string }
@@ -239,6 +246,20 @@ export async function createOrder(
 
   revalidatePath("/cart");
   revalidatePath("/", "layout"); // badge del header
+
+  // Email de confirmación (PR #9): programado con `after()` de Next 16 que
+  // usa `waitUntil` internamente — Vercel garantiza que la promise termine
+  // antes de congelar la función serverless. Un `void promise.catch()` no da
+  // esa garantía y puede matar el envío mid-flight tras el redirect.
+  after(() =>
+    sendOrderConfirmationEmail(createdOrderId).catch((err) => {
+      console.error("[checkout] order confirmation email failed", {
+        orderId: createdOrderId,
+        err,
+      });
+    }),
+  );
+
   // `redirect()` lanza NEXT_REDIRECT sintético — vive fuera del try/catch
   // para que ningún filtro futuro lo capture por accidente.
   redirect(`/checkout/success/${createdOrderId}`);
