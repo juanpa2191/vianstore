@@ -19,15 +19,19 @@ import { updateSession } from "@/lib/supabase/middleware";
 
 const ADMIN_PREFIX = "/admin";
 const ACCOUNT_PREFIX = "/account";
+const CHECKOUT_PREFIX = "/checkout";
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const { response, user, role } = await updateSession(request);
   const { pathname, search } = request.nextUrl;
 
   const isAdminRoute = pathname === ADMIN_PREFIX || pathname.startsWith(`${ADMIN_PREFIX}/`);
-  const isAccountRoute = pathname === ACCOUNT_PREFIX || pathname.startsWith(`${ACCOUNT_PREFIX}/`);
+  const isAccountRoute =
+    pathname === ACCOUNT_PREFIX || pathname.startsWith(`${ACCOUNT_PREFIX}/`);
+  const isCheckoutRoute =
+    pathname === CHECKOUT_PREFIX || pathname.startsWith(`${CHECKOUT_PREFIX}/`);
 
-  if (!user && (isAdminRoute || isAccountRoute)) {
+  if (!user && (isAdminRoute || isAccountRoute || isCheckoutRoute)) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.search = "";

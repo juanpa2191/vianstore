@@ -32,9 +32,9 @@ Detalles del flujo en [`CLAUDE.md`](../../CLAUDE.md) → sección "Flujo de trab
 | [3](pr-03-auth-roles.md) | Auth (Supabase) + roles | 0 - Fundación | `merged` | #2 |
 | [4](pr-04-catalog-model.md) | Modelo de catálogo | 1 - Catálogo | `merged` | #2 |
 | [5](pr-05-admin-catalog-crud.md) | Admin: CRUD de catálogo | 1 - Catálogo | `merged` | #3, #4 |
-| [6](pr-06-storefront-catalog.md) | Storefront: catálogo público | 1 - Catálogo | `in_review` | #4 |
-| [7](pr-07-cart.md) | Carrito | 2 - Compra | `pending` | #6 |
-| [8](pr-08-checkout-addresses.md) | Direcciones y checkout | 2 - Compra | `pending` | #7 |
+| [6](pr-06-storefront-catalog.md) | Storefront: catálogo público | 1 - Catálogo | `merged` | #4 |
+| [7](pr-07-cart.md) | Carrito | 2 - Compra | `merged` | #6 |
+| [8](pr-08-checkout-addresses.md) | Direcciones y checkout | 2 - Compra | `in_review` | #7 |
 | [9](pr-09-email-infra.md) | Emails transaccionales (infra + confirmación) | 2 - Compra | `pending` | #8 |
 | [10](pr-10-order-history.md) | Historial de pedidos (cliente) | 3 - Post-compra | `pending` | #8 |
 | [11](pr-11-admin-orders.md) | Admin: gestión de pedidos | 3 - Post-compra | `pending` | #8 |

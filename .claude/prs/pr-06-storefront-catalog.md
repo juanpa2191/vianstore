@@ -2,7 +2,7 @@
 pr: 6
 title: "Storefront: catálogo público"
 phase: 1 - Catálogo
-status: in_review
+status: merged
 depends_on: [4]
 branch: pr-06-storefront-catalog
 ---

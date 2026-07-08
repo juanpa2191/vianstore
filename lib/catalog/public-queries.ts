@@ -21,7 +21,13 @@ export type PublicVariantColor = {
   colorId: string;
   colorName: string;
   colorHex: string;
-  sizes: Array<{ label: string; skuCode: string; priceCents: number; stock: number }>;
+  sizes: Array<{
+    label: string;
+    skuId: string;
+    skuCode: string;
+    priceCents: number;
+    stock: number;
+  }>;
 };
 
 export type PublicProduct = {
@@ -60,7 +66,7 @@ async function _getPublicProduct(slug: string): Promise<PublicProduct | null> {
         select: {
           color: { select: { id: true, name: true, hex: true } },
           size: { select: { label: true } },
-          sku: { select: { code: true, price: true, stock: true } },
+          sku: { select: { id: true, code: true, price: true, stock: true } },
         },
       },
     },
@@ -83,6 +89,7 @@ async function _getPublicProduct(slug: string): Promise<PublicProduct | null> {
     };
     bucket.sizes.push({
       label: v.size.label,
+      skuId: v.sku.id,
       skuCode: v.sku.code,
       priceCents: v.sku.price,
       stock: v.sku.stock,

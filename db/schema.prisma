@@ -129,20 +129,162 @@ model Variant {
 }
 
 model Sku {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  variantId String   @unique @map("variant_id") @db.Uuid
-  variant   Variant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  variantId  String     @unique @map("variant_id") @db.Uuid
+  variant    Variant    @relation(fields: [variantId], references: [id], onDelete: Cascade)
   /// SKU imprimible/único para operaciones (ej "NIK-AF1-BLK-40").
-  code      String   @unique
+  code       String     @unique
   /// Precio en centavos (COP no usa fracción, pero mantenemos el patrón).
-  price     Int
+  price      Int
   /// Stock disponible. No negativo — validación por CHECK en supplement.
-  stock     Int      @default(0)
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  stock      Int        @default(0)
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  cartItems  CartItem[]
+  orderItems OrderItem[]
 
   @@index([price, stock])
   @@map("sku")
+  @@schema("public")
+}
+
+// ---------------------------------------------------------------------------
+// Direcciones y pedidos (PR #8).
+//
+// El MVP guarda **una** dirección por usuario (unique en `userId`). El scope
+// del `CLAUDE.md` dice explícitamente "una guardada por usuario". El upsert de
+// `/account/address` se apoya en ese unique.
+//
+// El pedido snapshotea:
+//   - `addressSnapshot` (JSON): copia inmutable de la dirección al momento de
+//     confirmar. Editar la dirección después NO cambia pedidos históricos.
+//   - `OrderItem.unitPriceCents`: precio congelado por SKU. Si el admin sube
+//     el precio, el pedido histórico mantiene el original.
+//
+// `OrderStatus` cubre el flujo manual sin pasarela: pedido queda `pendiente_pago`
+// hasta que un admin lo mueva a `pagado` (PR #11).
+// ---------------------------------------------------------------------------
+
+enum OrderStatus {
+  pendiente_pago
+  pagado
+  en_preparacion
+  enviado
+  entregado
+  cancelado
+
+  @@schema("public")
+}
+
+model Address {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @unique @map("user_id") @db.Uuid
+  fullName   String   @map("full_name")
+  phone      String
+  line1      String
+  line2      String?
+  city       String
+  state      String
+  postalCode String?  @map("postal_code")
+  country    String   @default("CO")
+  isDefault  Boolean  @default(true) @map("is_default")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("address")
+  @@schema("public")
+}
+
+model Order {
+  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// Nullable + ON DELETE SET NULL en auth.users: si el user se elimina, el
+  /// pedido queda huérfano pero preservado. `userEmail` da trazabilidad para
+  /// operaciones admin (soporte, refunds).
+  userId           String?     @map("user_id") @db.Uuid
+  userEmail        String      @map("user_email")
+  /// Copia inmutable de la dirección al momento del pedido (JSON).
+  addressSnapshot  Json        @map("address_snapshot")
+  status           OrderStatus @default(pendiente_pago)
+  subtotalCents    Int         @map("subtotal_cents")
+  shippingCents    Int         @default(0) @map("shipping_cents")
+  totalCents       Int         @map("total_cents")
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  items            OrderItem[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@map("order")
+  @@schema("public")
+}
+
+model OrderItem {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId        String   @map("order_id") @db.Uuid
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  /// Restrict: los SKUs no pueden borrarse mientras existan OrderItems.
+  skuId          String   @map("sku_id") @db.Uuid
+  sku            Sku      @relation(fields: [skuId], references: [id], onDelete: Restrict)
+  qty            Int
+  /// Precio congelado por unidad al momento del pedido (centavos).
+  unitPriceCents Int      @map("unit_price_cents")
+  /// Redundante con qty * unitPriceCents; lo persistimos para simplificar
+  /// reportes y evitar recomputaciones.
+  subtotalCents  Int      @map("subtotal_cents")
+  /// Copia del SKU code al momento del pedido (defensa contra renames en admin).
+  skuCode        String   @map("sku_code")
+  /// Copia del nombre del producto y variante para display sin JOIN.
+  productName    String   @map("product_name")
+  colorName      String   @map("color_name")
+  sizeLabel      String   @map("size_label")
+
+  @@index([orderId])
+  @@map("order_item")
+  @@schema("public")
+}
+
+// ---------------------------------------------------------------------------
+// Carrito (PR #7).
+//
+// Un `Cart` vive el ciclo completo del cliente: anónimo (cookie firmada con
+// HMAC) o asociado a un `Profile`. Al login, el cart anónimo se fusiona con el
+// del user (helper `mergeAnonymousCart`).
+//
+// `CartItem` referencia un `Sku` (no `Variant`) porque el SKU es la unidad
+// vendible con precio y stock; la variante es solo la combinación color×talla.
+// `@@unique([cartId, skuId])` permite `addToCart` idempotente por SKU.
+//
+// Precios NO se cachean aquí — se leen de `Sku.price` en /cart y checkout.
+// ---------------------------------------------------------------------------
+
+model Cart {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// null = carrito anónimo (identificado por cookie firmada).
+  /// no-null = ligado a un profile (uno por usuario, ver unique parcial en SQL).
+  userId    String?    @unique @map("user_id") @db.Uuid
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  items     CartItem[]
+
+  @@index([userId])
+  @@map("cart")
+  @@schema("public")
+}
+
+model CartItem {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cartId    String   @map("cart_id") @db.Uuid
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  skuId     String   @map("sku_id") @db.Uuid
+  sku       Sku      @relation(fields: [skuId], references: [id], onDelete: Restrict)
+  /// Cantidad; siempre > 0 (CHECK en supplement). Máx validado en app contra sku.stock.
+  qty       Int
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([cartId, skuId])
+  @@index([skuId])
+  @@map("cart_item")
   @@schema("public")
 }
 

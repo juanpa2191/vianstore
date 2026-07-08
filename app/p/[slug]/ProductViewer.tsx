@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import ProductGallery from "./ProductGallery";
 import { formatCentsCOP } from "@/lib/format/money";
 import type { PublicProduct } from "@/lib/catalog/public-queries";
+import { addToCart } from "@/app/cart/actions";
 
 const LOW_STOCK_THRESHOLD = 3;
 
@@ -52,10 +53,18 @@ export default function ProductViewer({ product }: { product: PublicProduct }) {
         : "in_stock"
     : null;
 
+  const [isPending, startTransition] = useTransition();
+
   const onAddToCart = () => {
     if (!activeSize) return;
-    // PR #7 conecta con el carrito real. Este toast solo confirma la intención.
-    toast.info(`Próximamente: agregar al carrito · ${activeSize.skuCode}`);
+    startTransition(async () => {
+      const res = await addToCart({ skuId: activeSize.skuId, qty: 1 });
+      if (res.ok) {
+        toast.success(`Agregado al carrito · ${activeSize.skuCode}`);
+      } else {
+        toast.error(res.formError);
+      }
+    });
   };
 
   return (
@@ -192,18 +201,20 @@ export default function ProductViewer({ product }: { product: PublicProduct }) {
         <button
           type="button"
           onClick={onAddToCart}
-          disabled={!activeSize || activeSize.stock === 0}
+          disabled={!activeSize || activeSize.stock === 0 || isPending}
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 py-3 text-sm font-black tracking-widest text-white uppercase shadow-sm transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-300"
         >
           <ShoppingBag className="h-4 w-4" aria-hidden="true" />
-          {activeSize && activeSize.stock === 0
-            ? "Agotado"
-            : activeSize
-              ? "Agregar al carrito"
-              : "Elige color y talla"}
+          {isPending
+            ? "Agregando…"
+            : activeSize && activeSize.stock === 0
+              ? "Agotado"
+              : activeSize
+                ? "Agregar al carrito"
+                : "Elige color y talla"}
         </button>
         <p className="text-[10px] text-neutral-400">
-          El carrito y el checkout se activan en PR #7.
+          Checkout se activa en PR #8.
         </p>
       </div>
     </div>
