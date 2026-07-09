@@ -2,8 +2,8 @@ import { createElement } from "react";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { AddressSnapshotSchema } from "@/lib/checkout/snapshot";
-import { getSiteUrl } from "@/lib/env";
 import OrderConfirmation from "@/emails/OrderConfirmation";
+import { categorizeEmailError, firstNameFrom, getSiteUrlOrFail } from "./shared";
 
 /**
  * Envía el email de confirmación para un pedido y guarda el resultado en
@@ -32,9 +32,10 @@ export async function sendOrderConfirmationEmail(orderId: string): Promise<void>
   try {
     await sendClaimedOrder(orderId);
   } catch (err) {
+    const message = err instanceof Error ? err.message.slice(0, 200) : String(err).slice(0, 200);
     console.error("[email/order-confirmation] unexpected error post-claim", {
       orderId,
-      err: err instanceof Error ? err.message : String(err),
+      message,
     });
     await releaseClaim(orderId, "unexpected_error");
     throw err;
@@ -77,16 +78,14 @@ async function sendClaimedOrder(orderId: string): Promise<void> {
   const address = parsed.data;
 
   const orderShortId = order.id.slice(0, 8);
-  const siteUrl = getSiteUrl().replace(/\/$/, "");
-  if (process.env.NODE_ENV === "production" && /^https?:\/\/(localhost|127\.)/i.test(siteUrl)) {
-    // Prod sin NEXT_PUBLIC_SITE_URL → el link cae a localhost. Fallo ruidoso.
+  const siteUrl = getSiteUrlOrFail();
+  if (!siteUrl) {
     await releaseClaim(orderId, "site_url_misconfigured");
     return;
   }
   const orderUrl = `${siteUrl}/checkout/success/${order.id}`;
 
-  const customerName =
-    address.fullName.trim().split(/\s+/)[0] || "cliente";
+  const customerName = firstNameFrom(address.fullName);
 
   const react = createElement(OrderConfirmation, {
     orderShortId,
@@ -109,7 +108,7 @@ async function sendClaimedOrder(orderId: string): Promise<void> {
   });
 
   if (!result.ok) {
-    await releaseClaim(orderId, categorizeError(result.error));
+    await releaseClaim(orderId, categorizeEmailError(result.error));
   }
   // Si result.ok → el claim ya escribió emailSentAt, no hay más que hacer.
 }
@@ -125,23 +124,11 @@ async function releaseClaim(orderId: string, category: string): Promise<void> {
       data: { emailSentAt: null, emailError: category },
     });
   } catch (err) {
+    const message = err instanceof Error ? err.message.slice(0, 200) : String(err).slice(0, 200);
     console.error("[email/order-confirmation] release claim failed", {
       orderId,
-      err,
+      message,
     });
   }
 }
 
-/**
- * Normaliza el mensaje del provider a un slug corto. Nunca persistir el
- * mensaje crudo (puede tener URLs, tokens parciales, snippets del email).
- */
-function categorizeError(raw: string): string {
-  const s = raw.toLowerCase();
-  if (s.includes("invalid_from")) return "resend:invalid_from";
-  if (s.includes("validation_error")) return "resend:validation_error";
-  if (s.includes("rate")) return "resend:rate_limited";
-  if (s.includes("timeout") || s.includes("etimedout")) return "network:timeout";
-  if (s.includes("email_provider_not_configured")) return "env:not_configured";
-  return "provider_error";
-}

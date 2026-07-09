@@ -209,11 +209,19 @@ model Order {
   shippingCents    Int         @default(0) @map("shipping_cents")
   totalCents       Int         @map("total_cents")
   createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  /// `updatedAt` bumpea con CADA UPDATE, incluyendo claims/releases de emails
+  /// (PR #9 / #12). No usar como "última acción del cliente" o "último cambio
+  /// de estado" — para eso, mirar `Order.statusChanges` (PR #11).
   updatedAt        DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
   /// Timestamp del email de confirmación (PR #9). Null hasta que se envía.
   emailSentAt      DateTime?   @map("email_sent_at") @db.Timestamptz(6)
   /// Mensaje del último error de envío. Null si el envío fue OK.
   emailError       String?     @map("email_error")
+  /// Timestamps + categoría de error de emails de despacho (PR #12).
+  shippedEmailSentAt   DateTime? @map("shipped_email_sent_at") @db.Timestamptz(6)
+  shippedEmailError    String?   @map("shipped_email_error")
+  deliveredEmailSentAt DateTime? @map("delivered_email_sent_at") @db.Timestamptz(6)
+  deliveredEmailError  String?   @map("delivered_email_error")
   /// Transportadora (PR #10). Slug corto — ver `lib/orders/carriers.ts`.
   trackingCarrier  String?     @map("tracking_carrier")
   /// Número de guía de la transportadora.

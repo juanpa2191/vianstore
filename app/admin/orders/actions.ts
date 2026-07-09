@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import type { OrderStatus } from "@prisma/client";
@@ -8,6 +9,11 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { canTransition } from "@/lib/orders/transitions";
 import { getCarrierInfo } from "@/lib/orders/carriers";
+import { sendOrderShippedEmail } from "@/lib/email/order-shipped";
+import {
+  deliveryEmailsEnabled,
+  sendOrderDeliveredEmail,
+} from "@/lib/email/order-delivered";
 
 export type OrderActionResult =
   | { ok: true }
@@ -137,6 +143,24 @@ async function runTransition(
   revalidatePath("/admin/orders");
   revalidatePath(`/account/orders/${orderId}`);
   revalidatePath("/account/orders");
+
+  // Emails POST-commit (PR #12). `after()` de Next 16 usa `waitUntil` — la
+  // promise sobrevive al redirect/response en Vercel serverless. Un fallo
+  // aquí NO revierte la transición: cada helper hace atomic claim y libera
+  // con categoría de error si falla.
+  if (to === "enviado") {
+    after(() =>
+      sendOrderShippedEmail(orderId).catch((err) => {
+        console.error("[admin/orders] shipped email failed", { orderId, err });
+      }),
+    );
+  } else if (to === "entregado" && deliveryEmailsEnabled()) {
+    after(() =>
+      sendOrderDeliveredEmail(orderId).catch((err) => {
+        console.error("[admin/orders] delivered email failed", { orderId, err });
+      }),
+    );
+  }
 }
 
 function toResult(err: unknown): OrderActionResult {

@@ -2,7 +2,7 @@
 pr: 11
 title: "Admin: gestión de pedidos"
 phase: 3 - Post-compra
-status: in_review
+status: merged
 depends_on: [8]
 branch: pr-11-admin-orders
 ---
