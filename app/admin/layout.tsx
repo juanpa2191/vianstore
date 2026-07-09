@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <AdminNavLink href="/admin/products" label="Productos">
             <Package className="h-4 w-4" aria-hidden="true" />
           </AdminNavLink>
-          <AdminNavLink href="/admin/orders" label="Pedidos" disabled>
+          <AdminNavLink href="/admin/orders" label="Pedidos">
             <Boxes className="h-4 w-4" aria-hidden="true" />
           </AdminNavLink>
           <AdminNavLink href="/admin/dashboard" label="Dashboard" disabled>

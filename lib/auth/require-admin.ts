@@ -26,6 +26,13 @@ export async function requireAdmin(): Promise<AdminSession> {
 
   if (!user) unauthorized();
   if (user.app_metadata?.role !== "admin") forbidden();
+  // Requerimos email para auditoría (`OrderStatusChange.changedByEmail`).
+  // Un admin sin email es un edge (Supabase phone-only) — bloquear en vez
+  // de persistir strings vacíos que rompen la trazabilidad.
+  if (!user.email) {
+    console.error("[requireAdmin] admin sin email", { userId: user.id });
+    forbidden();
+  }
 
-  return { userId: user.id, email: user.email ?? "" };
+  return { userId: user.id, email: user.email };
 }

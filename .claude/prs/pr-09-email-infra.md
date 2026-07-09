@@ -2,7 +2,7 @@
 pr: 9
 title: Emails transaccionales (infra + confirmación)
 phase: 2 - Compra
-status: in_review
+status: merged
 depends_on: [8]
 branch: pr-09-email-infra
 ---

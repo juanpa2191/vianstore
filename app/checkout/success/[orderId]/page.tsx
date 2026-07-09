@@ -1,11 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle2, MapPin, Package } from "lucide-react";
+import { CheckCircle2, MapPin, Package, AlertTriangle } from "lucide-react";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/require-user";
+import { getMyOrder } from "@/lib/orders/queries";
 import { formatCentsCOP } from "@/lib/format/money";
-import { AddressSnapshotSchema } from "@/lib/checkout/snapshot";
 
 export const metadata = {
   title: "Pedido confirmado — VianStore",
@@ -22,27 +21,11 @@ export default async function CheckoutSuccessPage({
 
   if (!z.string().uuid().safeParse(orderId).success) notFound();
 
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: {
-      items: { orderBy: { productName: "asc" } },
-    },
-  });
-  // Unificamos "no existe" y "no es tuyo" a notFound() para no filtrar por
-  // canal lateral la existencia de pedidos ajenos.
-  if (!order || order.userId !== session.userId) notFound();
-
-  // Runtime validation: si el JSON del snapshot está corrupto (restore parcial,
-  // migración manual), preferimos 404 antes que renderizar "Tel: undefined".
-  const parsedAddress = AddressSnapshotSchema.safeParse(order.addressSnapshot);
-  if (!parsedAddress.success) {
-    console.error("[checkout/success] address snapshot corrupto", {
-      orderId: order.id,
-      issues: parsedAddress.error.issues,
-    });
-    notFound();
-  }
-  const address = parsedAddress.data;
+  // Reusa el helper del historial (PR #10): filtra por userId server-side,
+  // valida el snapshot con Zod internamente, deja fuera campos internos
+  // (emailSentAt, emailError, userEmail) que no deben salir a UI.
+  const order = await getMyOrder(session.userId, orderId);
+  if (!order) notFound();
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
@@ -63,7 +46,7 @@ export default async function CheckoutSuccessPage({
             <p className="text-[10px] font-black tracking-widest text-neutral-500 uppercase">
               Pedido
             </p>
-            <p className="font-mono text-sm text-neutral-800">#{order.id.slice(0, 8)}</p>
+            <p className="font-mono text-sm text-neutral-800">#{order.shortId}</p>
           </div>
           <div className="text-right">
             <p className="text-[10px] font-black tracking-widest text-neutral-500 uppercase">
@@ -81,18 +64,26 @@ export default async function CheckoutSuccessPage({
 
         <div className="mb-4 flex items-start gap-2 border-t border-neutral-100 pt-4">
           <MapPin className="mt-0.5 h-4 w-4 text-neutral-500" aria-hidden="true" />
-          <div className="text-sm text-neutral-800">
-            <p className="font-bold">{address.fullName}</p>
-            <p className="text-neutral-600">
-              {address.line1}
-              {address.line2 ? ` · ${address.line2}` : ""}
+          {order.address ? (
+            <div className="text-sm text-neutral-800">
+              <p className="font-bold">{order.address.fullName}</p>
+              <p className="text-neutral-600">
+                {order.address.line1}
+                {order.address.line2 ? ` · ${order.address.line2}` : ""}
+              </p>
+              <p className="text-neutral-600">
+                {order.address.city}, {order.address.state}
+                {order.address.postalCode ? ` · ${order.address.postalCode}` : ""} ·{" "}
+                {order.address.country}
+              </p>
+              <p className="text-xs text-neutral-500">Tel: {order.address.phone}</p>
+            </div>
+          ) : (
+            <p className="inline-flex items-start gap-1.5 text-xs text-amber-800">
+              <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
+              Dirección no disponible. Escríbenos para confirmar los datos de envío.
             </p>
-            <p className="text-neutral-600">
-              {address.city}, {address.state}
-              {address.postalCode ? ` · ${address.postalCode}` : ""} · {address.country}
-            </p>
-            <p className="text-xs text-neutral-500">Tel: {address.phone}</p>
-          </div>
+          )}
         </div>
 
         <div className="mb-4 border-t border-neutral-100 pt-4">
@@ -152,10 +143,10 @@ export default async function CheckoutSuccessPage({
           Seguir comprando
         </Link>
         <Link
-          href="/account"
+          href="/account/orders"
           className="rounded-lg bg-neutral-900 px-4 py-2 text-center text-xs font-bold text-white hover:bg-neutral-800"
         >
-          Ver mi cuenta
+          Ver mis pedidos
         </Link>
       </div>
     </div>

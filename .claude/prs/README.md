@@ -35,9 +35,9 @@ Detalles del flujo en [`CLAUDE.md`](../../CLAUDE.md) → sección "Flujo de trab
 | [6](pr-06-storefront-catalog.md) | Storefront: catálogo público | 1 - Catálogo | `merged` | #4 |
 | [7](pr-07-cart.md) | Carrito | 2 - Compra | `merged` | #6 |
 | [8](pr-08-checkout-addresses.md) | Direcciones y checkout | 2 - Compra | `merged` | #7 |
-| [9](pr-09-email-infra.md) | Emails transaccionales (infra + confirmación) | 2 - Compra | `in_review` | #8 |
-| [10](pr-10-order-history.md) | Historial de pedidos (cliente) | 3 - Post-compra | `pending` | #8 |
-| [11](pr-11-admin-orders.md) | Admin: gestión de pedidos | 3 - Post-compra | `pending` | #8 |
+| [9](pr-09-email-infra.md) | Emails transaccionales (infra + confirmación) | 2 - Compra | `merged` | #8 |
+| [10](pr-10-order-history.md) | Historial de pedidos (cliente) | 3 - Post-compra | `merged` | #8 |
+| [11](pr-11-admin-orders.md) | Admin: gestión de pedidos | 3 - Post-compra | `in_review` | #8 |
 | [12](pr-12-shipping-emails.md) | Email de despacho + estados | 3 - Post-compra | `pending` | #9, #11 |
 | [13](pr-13-admin-dashboard.md) | Dashboard admin | 4 - Cierre | `pending` | #11 |
 | [14](pr-14-cicd-deploy.md) | CI/CD y despliegue | 4 - Cierre | `pending` | #1 |

@@ -214,11 +214,50 @@ model Order {
   emailSentAt      DateTime?   @map("email_sent_at") @db.Timestamptz(6)
   /// Mensaje del último error de envío. Null si el envío fue OK.
   emailError       String?     @map("email_error")
+  /// Transportadora (PR #10). Slug corto — ver `lib/orders/carriers.ts`.
+  trackingCarrier  String?     @map("tracking_carrier")
+  /// Número de guía de la transportadora.
+  trackingCode     String?     @map("tracking_code")
+  /// Timestamp de despacho (PR #11: transición `en_preparacion → enviado`).
+  shippedAt        DateTime?   @map("shipped_at") @db.Timestamptz(6)
+  /// Timestamp de entrega (PR #11: transición `enviado → entregado`).
+  deliveredAt      DateTime?   @map("delivered_at") @db.Timestamptz(6)
+  /// Timestamp del momento en que el stock fue devuelto tras cancelación.
+  /// Su presencia evita restauraciones dobles ante cualquier evolución
+  /// futura de la state machine (ej: `cancelado → pendiente_pago`).
+  stockRestoredAt  DateTime?   @map("stock_restored_at") @db.Timestamptz(6)
   items            OrderItem[]
+  statusChanges    OrderStatusChange[]
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([status])
   @@map("order")
+  @@schema("public")
+}
+
+/// Historial de transiciones de estado del pedido (PR #11).
+/// Se escribe una fila por cada cambio: transición atómica junto con el
+/// UPDATE en `Order.status`. `fromStatus` es null solo para el estado
+/// inicial del pedido si algún día se seedea explícitamente; hoy toda fila
+/// tiene `fromStatus` porque nace en `pendiente_pago` y cualquier cambio
+/// parte de ahí.
+model OrderStatusChange {
+  id                String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId           String       @map("order_id") @db.Uuid
+  order             Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  fromStatus        OrderStatus? @map("from_status")
+  toStatus          OrderStatus  @map("to_status")
+  /// UUID del admin que hizo el cambio (referencia a auth.users, ver supplement).
+  changedByUserId   String?      @map("changed_by_user_id") @db.Uuid
+  /// Email del admin (snapshot). Si el usuario se elimina de auth.users,
+  /// `changedByUserId` queda null pero el email preserva trazabilidad.
+  changedByEmail    String       @map("changed_by_email")
+  changedAt         DateTime     @default(now()) @map("changed_at") @db.Timestamptz(6)
+  /// Nota opcional del admin (ej: motivo de cancelación).
+  note              String?
+
+  @@index([orderId, changedAt(sort: Desc)])
+  @@map("order_status_change")
   @@schema("public")
 }
 
