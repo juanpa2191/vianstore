@@ -2,7 +2,7 @@
 pr: 12
 title: Email de despacho + estados adicionales
 phase: 3 - Post-compra
-status: in_review
+status: merged
 depends_on: [9, 11]
 branch: pr-12-shipping-emails
 ---

@@ -17,14 +17,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-[220px_1fr]">
         <nav className="flex flex-row gap-1 overflow-x-auto rounded-xl border border-neutral-200 bg-white p-2 md:flex-col">
+          <AdminNavLink href="/admin" label="Dashboard" exact>
+            <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
+          </AdminNavLink>
           <AdminNavLink href="/admin/products" label="Productos">
             <Package className="h-4 w-4" aria-hidden="true" />
           </AdminNavLink>
           <AdminNavLink href="/admin/orders" label="Pedidos">
             <Boxes className="h-4 w-4" aria-hidden="true" />
-          </AdminNavLink>
-          <AdminNavLink href="/admin/dashboard" label="Dashboard" disabled>
-            <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
           </AdminNavLink>
         </nav>
 

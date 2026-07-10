@@ -8,15 +8,26 @@ type Props = {
   label: string;
   children: React.ReactNode;
   disabled?: boolean;
+  /** Match SOLO si `pathname === href` exacto. Útil para links a rutas
+   *  padre (ej: `/admin` no debe marcarse activo en `/admin/products`). */
+  exact?: boolean;
 };
 
 /**
  * Link de nav admin con estado activo derivado del pathname actual.
- * `disabled` para módulos placeholder (Pedidos y Dashboard hasta PR #11/#13).
+ * `disabled` para módulos placeholder.
  */
-export default function AdminNavLink({ href, label, children, disabled = false }: Props) {
+export default function AdminNavLink({
+  href,
+  label,
+  children,
+  disabled = false,
+  exact = false,
+}: Props) {
   const pathname = usePathname();
-  const active = !disabled && (pathname === href || pathname.startsWith(`${href}/`));
+  const active =
+    !disabled &&
+    (exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`));
 
   if (disabled) {
     return (
